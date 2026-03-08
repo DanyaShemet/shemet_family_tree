@@ -7,7 +7,7 @@ export interface Fact {
 export interface Person {
   id: string;
   firstName: string;
-  lastName: string;
+  lastName: string | null;
   sex: 'male' | 'female' | 'other';
   birthDate?: string | null;
   deathDate?: string | null;
