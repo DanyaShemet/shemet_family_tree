@@ -1,0 +1,263 @@
+{
+  "rootPersonId": "daniiil-shemet-1999-09-24-male",
+  "persons": {
+    "daniiil-shemet-1999-09-24-male": {
+      "id": "daniiil-shemet-1999-09-24-male",
+      "firstName": "Даніїл",
+      "lastName": "Шемет",
+      "sex": "male",
+      "birthDate": "1999-09-24",
+      "deathDate": null,
+      "facts": [
+        {
+          "type": "birth",
+          "date": "1999-09-24",
+          "place": "Київ"
+        }
+      ],
+      "notes": "Програміст, розробник цього дерева, любить сноубординг, танці і болдерінг",
+      "photoUrl": null
+    },
+    "viktoriia-didashko-1999-11-02-female": {
+      "id": "viktoriia-didashko-1999-11-02-female",
+      "firstName": "Вікторія",
+      "lastName": "Дідашко",
+      "sex": "female",
+      "birthDate": "1999-11-02",
+      "deathDate": null,
+      "facts": [
+        {
+          "type": "birth",
+          "date": "1999-11-02",
+          "place": "Фастів"
+        }
+      ],
+      "notes": "",
+      "photoUrl": null
+    },
+    "arkadii-shemet-1976-12-30-male": {
+      "id": "arkadii-shemet-1976-12-30-male",
+      "firstName": "Аркадій",
+      "lastName": "Шемет",
+      "sex": "male",
+      "birthDate": "1976-12-30",
+      "deathDate": null,
+      "facts": [
+        {
+          "type": "birth",
+          "date": "1976-12-30",
+          "place": "Канів"
+        }
+      ],
+      "notes": "",
+      "photoUrl": null
+    },
+    "maryna-molchanova-1976-11-18-female": {
+      "id": "maryna-molchanova-1976-11-18-female",
+      "firstName": "Марина",
+      "lastName": "Молчанова",
+      "sex": "female",
+      "birthDate": "1976-11-18",
+      "deathDate": null,
+      "facts": [
+        {
+          "type": "birth",
+          "date": "1976-11-18",
+          "place": "Дніпро"
+        }
+      ],
+      "notes": "",
+      "photoUrl": null
+    },
+    "viktor-shemet-1951-06-04-male": {
+      "id": "viktor-shemet-1951-06-04-male",
+      "firstName": "Віктор",
+      "lastName": "Шемет",
+      "sex": "male",
+      "birthDate": "1951-06-04",
+      "deathDate": null,
+      "facts": [
+        {
+          "type": "birth",
+          "date": "1951-06-04",
+          "place": "Поташня"
+        }
+      ],
+      "notes": "",
+      "photoUrl": null
+    },
+    "lidiia-shemet-1954-03-04-female": {
+      "id": "lidiia-shemet-1954-03-04-female",
+      "firstName": "Лідія",
+      "lastName": "Шемет",
+      "sex": "female",
+      "birthDate": "1954-03-04",
+      "deathDate": null,
+      "facts": [
+        {
+          "type": "birth",
+          "date": "1954-03-04",
+          "place": "Поташня"
+        }
+      ],
+      "notes": "",
+      "photoUrl": null
+    },
+    "oleksandr-shemet-1970-03-04-male": {
+      "id": "oleksandr-shemet-1970-03-04-male",
+      "firstName": "Олександр",
+      "lastName": "Шемет",
+      "sex": "male",
+      "birthDate": "1970-03-04",
+      "deathDate": null,
+      "facts": [
+        {
+          "type": "birth",
+          "date": "1970-03-04",
+          "place": "Канів"
+        }
+      ],
+      "notes": "",
+      "photoUrl": null
+    },
+    "artem-shemet-1997-01-27-male": {
+      "id": "artem-shemet-1997-01-27-male",
+      "firstName": "Артем",
+      "lastName": "Шемет",
+      "sex": "male",
+      "birthDate": "1997-01-27",
+      "deathDate": null,
+      "facts": [
+        {
+          "type": "birth",
+          "date": "1997-01-27",
+          "place": "Канів"
+        }
+      ],
+      "notes": "",
+      "photoUrl": null
+    },
+    "liudmyla-shemet-1972-01-27-female": {
+      "id": "liudmyla-shemet-1972-01-27-female",
+      "firstName": "Людмила",
+      "lastName": "Шемет",
+      "sex": "female",
+      "birthDate": "1972-01-27",
+      "deathDate": null,
+      "facts": [
+        {
+          "type": "birth",
+          "date": "1972-01-27",
+          "place": "Канів"
+        }
+      ],
+      "notes": "",
+      "photoUrl": null
+    },
+    "natasha-molchanova-unknown-female": {
+      "id": "natasha-molchanova-unknown-female",
+      "firstName": "Наташа",
+      "lastName": "Молчанова",
+      "sex": "female",
+      "birthDate": null,
+      "deathDate": null,
+      "facts": [],
+      "notes": "Placeholder record; details to be уточнені",
+      "photoUrl": null
+    },
+    "serhii-molchanov-unknown-male": {
+      "id": "serhii-molchanov-unknown-male",
+      "firstName": "Сергій",
+      "lastName": "Молчанов",
+      "sex": "male",
+      "birthDate": null,
+      "deathDate": null,
+      "facts": [],
+      "notes": "Placeholder record; details to be уточнені",
+      "photoUrl": null
+    },
+    "oleksii-shemet-unknown-male": {
+      "id": "oleksii-shemet-unknown-male",
+      "firstName": "Олексій",
+      "lastName": "Шемет",
+      "sex": "male",
+      "birthDate": null,
+      "deathDate": null,
+      "facts": [],
+      "notes": "Placeholder record; details to be уточнені",
+      "photoUrl": null
+    },
+    "oleksii-unknown-unknown-male": {
+      "id": "oleksii-unknown-unknown-male",
+      "firstName": "Олексій",
+      "lastName": null,
+      "sex": "male",
+      "birthDate": null,
+      "deathDate": null,
+      "facts": [],
+      "notes": "Placeholder record; father of Лідія Шемет, surname unknown",
+      "photoUrl": null
+    }
+  },
+  "unions": {
+    "arkadii-shemet-1976-12-30-male__maryna-molchanova-1976-11-18-female": {
+      "id": "arkadii-shemet-1976-12-30-male__maryna-molchanova-1976-11-18-female",
+      "partners": [
+        "arkadii-shemet-1976-12-30-male",
+        "maryna-molchanova-1976-11-18-female"
+      ],
+      "children": [
+        "daniiil-shemet-1999-09-24-male"
+      ],
+      "status": "divorced",
+      "facts": []
+    },
+    "daniiil-shemet-1999-09-24-male__viktoriia-didashko-1999-11-02-female": {
+      "id": "daniiil-shemet-1999-09-24-male__viktoriia-didashko-1999-11-02-female",
+      "partners": [
+        "daniiil-shemet-1999-09-24-male",
+        "viktoriia-didashko-1999-11-02-female"
+      ],
+      "children": [],
+      "status": "relationship",
+      "facts": []
+    },
+    "viktor-shemet-1951-06-04-male__lidiia-shemet-1954-03-04-female": {
+      "id": "viktor-shemet-1951-06-04-male__lidiia-shemet-1954-03-04-female",
+      "partners": [
+        "viktor-shemet-1951-06-04-male",
+        "lidiia-shemet-1954-03-04-female"
+      ],
+      "children": [
+        "arkadii-shemet-1976-12-30-male",
+        "oleksandr-shemet-1970-03-04-male"
+      ],
+      "status": "married",
+      "facts": []
+    },
+    "oleksandr-shemet-1970-03-04-male__liudmyla-shemet-1972-01-27-female": {
+      "id": "oleksandr-shemet-1970-03-04-male__liudmyla-shemet-1972-01-27-female",
+      "partners": [
+        "oleksandr-shemet-1970-03-04-male",
+        "liudmyla-shemet-1972-01-27-female"
+      ],
+      "children": [
+        "artem-shemet-1997-01-27-male"
+      ],
+      "status": "married",
+      "facts": []
+    },
+    "serhii-molchanov-unknown-male__natasha-molchanova-unknown-female": {
+      "id": "serhii-molchanov-unknown-male__natasha-molchanova-unknown-female",
+      "partners": [
+        "serhii-molchanov-unknown-male",
+        "natasha-molchanova-unknown-female"
+      ],
+      "children": [
+        "maryna-molchanova-1976-11-18-female"
+      ],
+      "status": "unknown",
+      "facts": []
+    }
+  }
+}
