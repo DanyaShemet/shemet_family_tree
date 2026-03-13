@@ -1,43 +1,38 @@
-import { useState } from 'react';
-import TreeCanvas from './components/TreeCanvas';
-import PersonSidebar from './components/PersonSidebar';
-import { FamilyTreeData } from './types/family';
-import data from './data/data.json';
+import { NavLink, Outlet } from 'react-router-dom';
 
-const familyData = data as FamilyTreeData;
+const NAV = [
+  { to: '/',       label: 'Повне дерево', end: true },
+  { to: '/shemet', label: 'Шемети' },
+];
 
 export default function App() {
-  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
-
-  function handleSelectPerson(personId: string) {
-    setSelectedPersonId(personId === selectedPersonId ? null : personId);
-  }
-
-  function handleClose() {
-    setSelectedPersonId(null);
-  }
-
   return (
     <div className="app">
       <header className="app-header">
         <h1>Family Tree</h1>
-        <span className="person-count">
-          {Object.keys(familyData.persons).length} people
-        </span>
+        <nav style={{ display: 'flex', gap: 8 }}>
+          {NAV.map(({ to, label, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              style={({ isActive }) => ({
+                padding: '4px 12px',
+                borderRadius: 6,
+                textDecoration: 'none',
+                fontWeight: isActive ? 700 : 400,
+                background: isActive ? '#1e293b' : 'transparent',
+                color: isActive ? '#f8fafc' : '#475569',
+                border: '1px solid #cbd5e1',
+                fontSize: 13,
+              })}
+            >
+              {label}
+            </NavLink>
+          ))}
+        </nav>
       </header>
-      <div className="app-body">
-        <TreeCanvas
-          data={familyData}
-          selectedPersonId={selectedPersonId}
-          onSelectPerson={handleSelectPerson}
-        />
-        <PersonSidebar
-          personId={selectedPersonId}
-          data={familyData}
-          onClose={handleClose}
-          onSelect={handleSelectPerson}
-        />
-      </div>
+      <Outlet />
     </div>
   );
 }

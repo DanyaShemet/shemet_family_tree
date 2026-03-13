@@ -39,6 +39,16 @@ export default function PersonSidebar({ personId, data, onClose, onSelect }: Pro
         <button className="close-btn" onClick={onClose} aria-label="Close">✕</button>
       </div>
 
+      {person.photoUrl ? (
+        <div className="sidebar-photo">
+          <img src={person.photoUrl} alt={`${person.firstName} ${person.lastName}`} />
+        </div>
+      ) : (
+        <div className={`sidebar-photo-placeholder sidebar-photo-placeholder--${person.sex}`}>
+          {person.firstName?.[0] ?? '?'}
+        </div>
+      )}
+
       <div className="sidebar-section">
         <h3>Details</h3>
         <dl>

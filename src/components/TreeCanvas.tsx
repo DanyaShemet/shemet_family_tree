@@ -26,49 +26,97 @@ export default function TreeCanvas({ data, selectedPersonId, onSelectPerson }: P
     return map;
   }, [layout.nodes]);
 
-  // Highlight ancestors and descendants
-  const highlighted = useMemo(() => {
-    if (!selectedPersonId) return new Set<string>();
+  // Highlight ancestors, descendants, and siblings in separate sets
+  const { ancestorIds, descendantIds, siblingIds, cousinIds } = useMemo(() => {
+    if (!selectedPersonId) return { ancestorIds: new Set<string>(), descendantIds: new Set<string>(), siblingIds: new Set<string>(), cousinIds: new Set<string>() };
 
-    const set = new Set<string>();
     const unions = Object.values(data.unions);
 
-    // BFS upward (ancestors)
-    const queue: string[] = [selectedPersonId];
+    // BFS upward — ancestors (excluding selected)
+    const ancestorIds = new Set<string>();
+    const queueUp: string[] = [];
+    for (const u of unions) {
+      if (u.children.includes(selectedPersonId)) {
+        for (const p of u.partners) queueUp.push(p);
+      }
+    }
     const visitedUp = new Set<string>();
-    while (queue.length) {
-      const pid = queue.shift()!;
+    while (queueUp.length) {
+      const pid = queueUp.shift()!;
       if (visitedUp.has(pid)) continue;
       visitedUp.add(pid);
-      set.add(pid);
-      // find unions where pid is a child
+      ancestorIds.add(pid);
       for (const u of unions) {
         if (u.children.includes(pid)) {
-          for (const partner of u.partners) {
-            queue.push(partner);
-          }
+          for (const p of u.partners) queueUp.push(p);
         }
       }
     }
 
-    // BFS downward (descendants)
-    const queueDown: string[] = [selectedPersonId];
+    // BFS downward — descendants (excluding selected)
+    const descendantIds = new Set<string>();
+    const queueDown: string[] = [];
+    for (const u of unions) {
+      if (u.partners.includes(selectedPersonId)) {
+        for (const c of u.children) queueDown.push(c);
+      }
+    }
     const visitedDown = new Set<string>();
     while (queueDown.length) {
       const pid = queueDown.shift()!;
       if (visitedDown.has(pid)) continue;
       visitedDown.add(pid);
-      set.add(pid);
+      descendantIds.add(pid);
       for (const u of unions) {
         if (u.partners.includes(pid)) {
-          for (const child of u.children) {
-            queueDown.push(child);
+          for (const c of u.children) queueDown.push(c);
+        }
+      }
+    }
+
+    // Parents of selected — used for siblings and cousins
+    const parentIds = new Set<string>();
+    for (const u of unions) {
+      if (u.children.includes(selectedPersonId)) {
+        for (const p of u.partners) parentIds.add(p);
+      }
+    }
+
+    // Siblings — share at least one parent (including half-siblings across different unions)
+    const siblingIds = new Set<string>();
+    for (const parentId of parentIds) {
+      for (const u of unions) {
+        if (u.partners.includes(parentId)) {
+          for (const c of u.children) {
+            if (c !== selectedPersonId) siblingIds.add(c);
           }
         }
       }
     }
 
-    return set;
+    // Cousins — children of selected's parents' siblings (share a grandparent, not a parent)
+    const cousinIds = new Set<string>();
+    // Step 1: for each parent, find their siblings (aunts/uncles)
+    const auntUncleIds = new Set<string>();
+    for (const parentId of parentIds) {
+      for (const u of unions) {
+        if (u.children.includes(parentId)) {
+          for (const c of u.children) {
+            if (!parentIds.has(c)) auntUncleIds.add(c);
+          }
+        }
+      }
+    }
+    // Step 3: collect children of aunts/uncles
+    for (const auId of auntUncleIds) {
+      for (const u of unions) {
+        if (u.partners.includes(auId)) {
+          for (const c of u.children) cousinIds.add(c);
+        }
+      }
+    }
+
+    return { ancestorIds, descendantIds, siblingIds, cousinIds };
   }, [selectedPersonId, data.unions]);
 
   // Pan handlers
@@ -93,7 +141,9 @@ export default function TreeCanvas({ data, selectedPersonId, onSelectPerson }: P
   // Zoom with mouse wheel
   const onWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
-    const factor = e.deltaY < 0 ? 1.1 : 0.9;
+    const delta = -e.deltaY * (e.deltaMode === 1 ? 20 : e.deltaMode === 2 ? 300 : 1);
+    const zoomIntensity = 0.001;
+    const factor = Math.max(0.8, Math.min(1.2, 1 + delta * zoomIntensity));
     const svg = svgRef.current;
     if (!svg) return;
     const rect = svg.getBoundingClientRect();
@@ -176,7 +226,10 @@ export default function TreeCanvas({ data, selectedPersonId, onSelectPerson }: P
                 node={node}
                 person={person}
                 selected={selectedPersonId === person.id}
-                highlighted={highlighted.has(person.id) && selectedPersonId !== person.id}
+                isAncestor={ancestorIds.has(person.id)}
+                isDescendant={descendantIds.has(person.id)}
+                isSibling={siblingIds.has(person.id)}
+                isCousin={cousinIds.has(person.id)}
                 onClick={onSelectPerson}
               />
             );

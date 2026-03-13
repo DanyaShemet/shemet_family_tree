@@ -16,7 +16,7 @@
         }
       ],
       "notes": "Програміст, розробник цього дерева, любить сноубординг, танці і болдерінг",
-      "photoUrl": null
+      "photoUrl": "src/assets/me.jpg"
     },
     "viktoriia-didashko-1999-11-02-female": {
       "id": "viktoriia-didashko-1999-11-02-female",
@@ -66,6 +66,45 @@
           "place": "Дніпро"
         }
       ],
+      "notes": "",
+      "photoUrl": null
+    },
+    "iryna-molchanova-1984-11-18-female": {
+      "id": "iryna-molchanova-1984-11-18-female",
+      "firstName": "Ірина",
+      "lastName": "Молчанова",
+      "sex": "female",
+      "birthDate": "1984-11-18",
+      "deathDate": null,
+      "facts": [
+        {
+          "type": "birth",
+          "date": "1976-11-18",
+          "place": "Дніпро"
+        }
+      ],
+      "notes": "",
+      "photoUrl": null
+    },
+    "sergii-stepanenko-1984-10-18-male": {
+      "id": "sergii-stepanenko-1984-10-18-male",
+      "firstName": "Cергій",
+      "lastName": "Степаненко",
+      "sex": "male",
+      "birthDate": "1984-10-18",
+      "deathDate": null,
+      "facts": [],
+      "notes": "",
+      "photoUrl": null
+    },
+    "matwii-stepanenko-2013-11-13-male": {
+      "id": "matwii-stepanenko-2013-11-13-male",
+      "firstName": "Матвій",
+      "lastName": "Степаненко",
+      "sex": "male",
+      "birthDate": "2013-11-13",
+      "deathDate": null,
+      "facts": [],
       "notes": "",
       "photoUrl": null
     },
@@ -212,6 +251,30 @@
       "status": "divorced",
       "facts": []
     },
+    "oleksandr-shemet-1970-03-04-male__liudmyla-shemet-1972-01-27-female": {
+      "id": "oleksandr-shemet-1970-03-04-male__liudmyla-shemet-1972-01-27-female",
+      "partners": [
+        "oleksandr-shemet-1970-03-04-male",
+        "liudmyla-shemet-1972-01-27-female"
+      ],
+      "children": [
+        "artem-shemet-1997-01-27-male"
+      ],
+      "status": "married",
+      "facts": []
+    },
+    "sergii-stepanenko-1984-10-18-male__maryna-molchanova-1976-11-18-female": {
+      "id": "sergii-stepanenko-1984-10-18-male__maryna-molchanova-1976-11-18-female",
+      "partners": [
+        "sergii-stepanenko-1984-10-18-male",
+        "maryna-molchanova-1976-11-18-female"
+      ],
+      "children": [
+        "matwii-stepanenko-2013-11-13-male"
+      ],
+      "status": "divorced",
+      "facts": []
+    },
     "daniiil-shemet-1999-09-24-male__viktoriia-didashko-1999-11-02-female": {
       "id": "daniiil-shemet-1999-09-24-male__viktoriia-didashko-1999-11-02-female",
       "partners": [
@@ -229,20 +292,8 @@
         "lidiia-shemet-1954-03-04-female"
       ],
       "children": [
-        "arkadii-shemet-1976-12-30-male",
-        "oleksandr-shemet-1970-03-04-male"
-      ],
-      "status": "married",
-      "facts": []
-    },
-    "oleksandr-shemet-1970-03-04-male__liudmyla-shemet-1972-01-27-female": {
-      "id": "oleksandr-shemet-1970-03-04-male__liudmyla-shemet-1972-01-27-female",
-      "partners": [
         "oleksandr-shemet-1970-03-04-male",
-        "liudmyla-shemet-1972-01-27-female"
-      ],
-      "children": [
-        "artem-shemet-1997-01-27-male"
+        "arkadii-shemet-1976-12-30-male"
       ],
       "status": "married",
       "facts": []
@@ -254,6 +305,7 @@
         "natasha-molchanova-unknown-female"
       ],
       "children": [
+        "iryna-molchanova-1984-11-18-female",
         "maryna-molchanova-1976-11-18-female"
       ],
       "status": "divorced",

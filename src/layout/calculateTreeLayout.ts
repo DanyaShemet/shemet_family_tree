@@ -7,7 +7,6 @@ const UNION_H = 24;
 const H_GAP = 40;
 const V_GAP = 100;
 const PARTNER_GAP = 20;
-const INLAW_PADDING = 80; // extra horizontal space around in-law parent pairs
 
 export interface LayoutResult {
   nodes: PositionedNode[];
@@ -16,11 +15,9 @@ export interface LayoutResult {
   height: number;
 }
 
-// A partner in a union slot. If the partner has known parents in the data,
-// inlawUnionId records that parent union so it can be rendered above them.
 interface OtherPartner {
   personId: string;
-  inlawUnionId?: string; // parent union to render above this partner
+  extensionUnions: UnionSlot[];
 }
 
 interface UnionSlot {
@@ -35,6 +32,7 @@ interface SubTree {
   unions: UnionSlot[];
   x: number;
   width: number;
+  isGhost: boolean;
 }
 
 export function calculateTreeLayout(data: FamilyTreeData): LayoutResult {
@@ -71,11 +69,38 @@ export function calculateTreeLayout(data: FamilyTreeData): LayoutResult {
 
   const visited = new Set<string>();
   const visitedUnions = new Set<string>();
+  const placedPersonIds = new Set<string>();
+
+  function collectExtensionUnions(partnerId: string): UnionSlot[] {
+    const result: UnionSlot[] = [];
+    for (const extUnionId of personUnions[partnerId] || []) {
+      if (visitedUnions.has(extUnionId)) continue;
+      visitedUnions.add(extUnionId);
+
+      const extUnion = data.unions[extUnionId];
+      const extOtherPartners: OtherPartner[] = [];
+      for (const extPartnerId of extUnion.partners.filter(p => p !== partnerId)) {
+        visited.add(extPartnerId);
+        extOtherPartners.push({ personId: extPartnerId, extensionUnions: [] });
+      }
+
+      const extChildren: SubTree[] = [];
+      for (const childId of extUnion.children) {
+        extChildren.push(buildSubTree(childId));
+      }
+
+      result.push({ unionId: extUnionId, otherPartners: extOtherPartners, childSubTrees: extChildren, slotWidth: 0 });
+    }
+    return result;
+  }
 
   function buildSubTree(personId: string): SubTree {
-    const st: SubTree = { anchorPersonId: personId, unions: [], x: 0, width: NODE_W };
-    if (visited.has(personId)) return st;
+    if (visited.has(personId)) {
+      return { anchorPersonId: personId, unions: [], x: 0, width: 0, isGhost: true };
+    }
     visited.add(personId);
+
+    const st: SubTree = { anchorPersonId: personId, unions: [], x: 0, width: NODE_W, isGhost: false };
 
     for (const unionId of personUnions[personId] || []) {
       if (visitedUnions.has(unionId)) continue;
@@ -86,25 +111,13 @@ export function calculateTreeLayout(data: FamilyTreeData): LayoutResult {
 
       for (const partnerId of union.partners.filter(p => p !== personId)) {
         visited.add(partnerId);
-
-        // Check if this partner has known parents — if so, record the parent union
-        // and mark its members visited so they don't appear as a disconnected subtree.
-        let inlawUnionId: string | undefined;
-        for (const puId of parentUnionsOf[partnerId] || []) {
-          if (!visitedUnions.has(puId)) {
-            visitedUnions.add(puId);
-            inlawUnionId = puId;
-            for (const p of data.unions[puId].partners) visited.add(p);
-            break; // only handle the first parent union
-          }
-        }
-
-        otherPartners.push({ personId: partnerId, inlawUnionId });
+        const extensionUnions = collectExtensionUnions(partnerId);
+        otherPartners.push({ personId: partnerId, extensionUnions });
       }
 
       const childSubTrees: SubTree[] = [];
       for (const childId of union.children) {
-        if (!visited.has(childId)) childSubTrees.push(buildSubTree(childId));
+        childSubTrees.push(buildSubTree(childId));
       }
 
       st.unions.push({ unionId, otherPartners, childSubTrees, slotWidth: 0 });
@@ -113,19 +126,12 @@ export function calculateTreeLayout(data: FamilyTreeData): LayoutResult {
     return st;
   }
 
-  // Effective horizontal width needed for one partner column (may be wider than NODE_W
-  // when the partner has an in-law parent pair that must fit above them).
+  // Row width of a partner column: NODE_W + row widths of extension unions (no children).
   function partnerEffectiveWidth(op: OtherPartner): number {
-    if (!op.inlawUnionId) return NODE_W;
-    const pu = data.unions[op.inlawUnionId];
-    if (!pu) return NODE_W;
-    const pairW =
-      pu.partners.length * NODE_W +
-      Math.max(0, pu.partners.length - 1) * PARTNER_GAP +
-      UNION_W + 2 * PARTNER_GAP;
-    return Math.max(NODE_W, pairW + INLAW_PADDING);
+    return NODE_W + op.extensionUnions.reduce((s, ext) => s + ext.slotWidth, 0);
   }
 
+  // Row width of a slot (union diamond + partners with their extensions).
   function slotRowWidth(slot: UnionSlot): number {
     const partnersW =
       slot.otherPartners.reduce((s, op) => s + partnerEffectiveWidth(op), 0) +
@@ -133,41 +139,57 @@ export function calculateTreeLayout(data: FamilyTreeData): LayoutResult {
     return PARTNER_GAP + UNION_W + PARTNER_GAP + (partnersW > 0 ? partnersW : 0);
   }
 
-  function slotChildrenWidth(slot: UnionSlot): number {
-    if (slot.childSubTrees.length === 0) return 0;
-    return (
-      slot.childSubTrees.reduce((s, c) => s + c.width, 0) +
-      H_GAP * (slot.childSubTrees.length - 1)
-    );
+  // Combined children width: main children + all extension children laid out sequentially.
+  function allSlotChildrenWidth(slot: UnionSlot): number {
+    const kids: SubTree[] = [
+      ...slot.childSubTrees.filter(c => !c.isGhost),
+      ...slot.otherPartners.flatMap(op =>
+        op.extensionUnions.flatMap(ext => ext.childSubTrees.filter(c => !c.isGhost))
+      ),
+    ];
+    if (kids.length === 0) return 0;
+    return kids.reduce((s, c) => s + c.width, 0) + H_GAP * (kids.length - 1);
   }
 
   function computeWidth(st: SubTree): number {
+    if (st.isGhost) return 0;
     for (const slot of st.unions) {
       for (const child of slot.childSubTrees) computeWidth(child);
-      slot.slotWidth = Math.max(slotRowWidth(slot), slotChildrenWidth(slot));
+      for (const op of slot.otherPartners) {
+        for (const extSlot of op.extensionUnions) {
+          for (const extChild of extSlot.childSubTrees) computeWidth(extChild);
+          // Extension slot width = row only (children are counted at the parent slot level).
+          extSlot.slotWidth = slotRowWidth(extSlot);
+        }
+      }
+      slot.slotWidth = Math.max(slotRowWidth(slot), allSlotChildrenWidth(slot));
     }
     st.width = NODE_W + st.unions.reduce((s, slot) => s + slot.slotWidth, 0);
     return st.width;
   }
 
   function assignPositions(st: SubTree, startX: number, depth: number) {
+    if (st.isGhost) return;
+
     const y = depth * (NODE_H + V_GAP);
 
-    nodes.push({
-      id: `person-${st.anchorPersonId}`,
-      type: 'person',
-      personId: st.anchorPersonId,
-      x: startX,
-      y,
-      width: NODE_W,
-      height: NODE_H,
-    });
+    if (!placedPersonIds.has(st.anchorPersonId)) {
+      placedPersonIds.add(st.anchorPersonId);
+      nodes.push({
+        id: `person-${st.anchorPersonId}`,
+        type: 'person',
+        personId: st.anchorPersonId,
+        x: startX,
+        y,
+        width: NODE_W,
+        height: NODE_H,
+      });
+    }
 
     let sectionX = startX + NODE_W;
 
     for (const slot of st.unions) {
       const divorced = data.unions[slot.unionId]?.status === 'divorced';
-
       const unionX = sectionX + PARTNER_GAP;
       const unionY = y + NODE_H / 2 - UNION_H / 2;
       const unionCenterX = unionX + UNION_W / 2;
@@ -181,122 +203,132 @@ export function calculateTreeLayout(data: FamilyTreeData): LayoutResult {
         width: UNION_W,
         height: UNION_H,
       });
-
       edges.push({
         id: `e-${st.anchorPersonId}-${slot.unionId}`,
         fromId: `person-${st.anchorPersonId}`,
         toId: `union-${slot.unionId}`,
         type: 'partner',
+        unionId: slot.unionId,
         divorced,
       });
 
-      // Place each partner, centered in their effective width column
+      // --- Phase 1: place the row (partners + extension unions/partners) ---
       let px = unionX + UNION_W + PARTNER_GAP;
 
       for (const op of slot.otherPartners) {
         const effW = partnerEffectiveWidth(op);
-        const partnerCenter = px + effW / 2;
-        const partnerX = partnerCenter - NODE_W / 2;
+        const partnerX = px; // left-align within the column (no centering)
 
-        nodes.push({
-          id: `person-${op.personId}`,
-          type: 'person',
-          personId: op.personId,
-          x: partnerX,
-          y,
-          width: NODE_W,
-          height: NODE_H,
-        });
-
+        if (!placedPersonIds.has(op.personId)) {
+          placedPersonIds.add(op.personId);
+          nodes.push({
+            id: `person-${op.personId}`,
+            type: 'person',
+            personId: op.personId,
+            x: partnerX,
+            y,
+            width: NODE_W,
+            height: NODE_H,
+          });
+        }
         edges.push({
           id: `e-${slot.unionId}-${op.personId}`,
           fromId: `union-${slot.unionId}`,
           toId: `person-${op.personId}`,
           type: 'partner',
+          unionId: slot.unionId,
           divorced,
         });
 
-        // Render in-law parents above this partner (one generation up)
-        if (op.inlawUnionId && depth > 0) {
-          const pu = data.unions[op.inlawUnionId];
-          const parentY = (depth - 1) * (NODE_H + V_GAP);
-          const pairW =
-            pu.partners.length * NODE_W +
-            Math.max(0, pu.partners.length - 1) * PARTNER_GAP +
-            UNION_W + 2 * PARTNER_GAP;
-          let ppx = partnerCenter - pairW / 2;
+        let extSectionX = partnerX + NODE_W;
+        for (const extSlot of op.extensionUnions) {
+          const extDivorced = data.unions[extSlot.unionId]?.status === 'divorced';
+          const extUnionX = extSectionX + PARTNER_GAP;
+          const extUnionY = y + NODE_H / 2 - UNION_H / 2;
 
-          for (let i = 0; i < pu.partners.length; i++) {
-            const parentId = pu.partners[i];
-            nodes.push({
-              id: `person-${parentId}`,
-              type: 'person',
-              personId: parentId,
-              x: ppx,
-              y: parentY,
-              width: NODE_W,
-              height: NODE_H,
-            });
-            ppx += NODE_W + PARTNER_GAP;
+          nodes.push({
+            id: `union-${extSlot.unionId}`,
+            type: 'union',
+            unionId: extSlot.unionId,
+            x: extUnionX,
+            y: extUnionY,
+            width: UNION_W,
+            height: UNION_H,
+          });
+          edges.push({
+            id: `e-${op.personId}-${extSlot.unionId}`,
+            fromId: `person-${op.personId}`,
+            toId: `union-${extSlot.unionId}`,
+            type: 'partner',
+            unionId: extSlot.unionId,
+            divorced: extDivorced,
+          });
 
-            if (i < pu.partners.length - 1) {
-              // Place the in-law union node between parents
-              if (i === 0) {
-                nodes.push({
-                  id: `union-${op.inlawUnionId}`,
-                  type: 'union',
-                  unionId: op.inlawUnionId,
-                  x: ppx - PARTNER_GAP / 2,
-                  y: parentY + NODE_H / 2 - UNION_H / 2,
-                  width: UNION_W,
-                  height: UNION_H,
-                });
-
-                edges.push({
-                  id: `e-inlaw-${pu.partners[0]}-${op.inlawUnionId}`,
-                  fromId: `person-${pu.partners[0]}`,
-                  toId: `union-${op.inlawUnionId}`,
-                  type: 'partner',
-                });
-
-                edges.push({
-                  id: `e-inlaw-${op.inlawUnionId}-${pu.partners[1]}`,
-                  fromId: `union-${op.inlawUnionId}`,
-                  toId: `person-${pu.partners[1]}`,
-                  type: 'partner',
-                });
-
-                // Parent-child line from in-law union down to the partner
-                edges.push({
-                  id: `e-inlaw-${op.inlawUnionId}-to-${op.personId}`,
-                  fromId: `union-${op.inlawUnionId}`,
-                  toId: `person-${op.personId}`,
-                  type: 'parent-child',
-                });
-
-                ppx += UNION_W + PARTNER_GAP;
-              }
+          let extPx = extUnionX + UNION_W + PARTNER_GAP;
+          for (const extOp of extSlot.otherPartners) {
+            const extPartnerX = extPx;
+            if (!placedPersonIds.has(extOp.personId)) {
+              placedPersonIds.add(extOp.personId);
+              nodes.push({
+                id: `person-${extOp.personId}`,
+                type: 'person',
+                personId: extOp.personId,
+                x: extPartnerX,
+                y,
+                width: NODE_W,
+                height: NODE_H,
+              });
             }
+            edges.push({
+              id: `e-${extSlot.unionId}-${extOp.personId}`,
+              fromId: `union-${extSlot.unionId}`,
+              toId: `person-${extOp.personId}`,
+              type: 'partner',
+              unionId: extSlot.unionId,
+              divorced: extDivorced,
+            });
+            extPx += NODE_W + PARTNER_GAP;
           }
+
+          extSectionX += extSlot.slotWidth;
         }
 
         px += effW + PARTNER_GAP;
       }
 
-      // Children centered below this union node, clamped to section boundary
-      if (slot.childSubTrees.length > 0) {
-        const cw = slotChildrenWidth(slot);
-        let cx = Math.max(sectionX, unionCenterX - cw / 2);
+      // --- Phase 2: place all children sequentially (main then extension) ---
+      const combinedCw = allSlotChildrenWidth(slot);
+      let cx = Math.max(sectionX, unionCenterX - combinedCw / 2);
 
-        for (const child of slot.childSubTrees) {
+      for (const child of slot.childSubTrees) {
+        if (!child.isGhost) {
           assignPositions(child, cx, depth + 1);
-          edges.push({
-            id: `e-${slot.unionId}-to-${child.anchorPersonId}`,
-            fromId: `union-${slot.unionId}`,
-            toId: `person-${child.anchorPersonId}`,
-            type: 'parent-child',
-          });
           cx += child.width + H_GAP;
+        }
+        edges.push({
+          id: `e-${slot.unionId}-to-${child.anchorPersonId}`,
+          fromId: `union-${slot.unionId}`,
+          toId: `person-${child.anchorPersonId}`,
+          type: 'parent-child',
+          unionId: slot.unionId,
+        });
+      }
+
+      for (const op of slot.otherPartners) {
+        for (const extSlot of op.extensionUnions) {
+          for (const extChild of extSlot.childSubTrees) {
+            if (!extChild.isGhost) {
+              assignPositions(extChild, cx, depth + 1);
+              cx += extChild.width + H_GAP;
+            }
+            edges.push({
+              id: `e-${extSlot.unionId}-to-${extChild.anchorPersonId}`,
+              fromId: `union-${extSlot.unionId}`,
+              toId: `person-${extChild.anchorPersonId}`,
+              type: 'parent-child',
+              unionId: extSlot.unionId,
+            });
+          }
         }
       }
 

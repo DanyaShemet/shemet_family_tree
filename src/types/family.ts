@@ -46,5 +46,6 @@ export interface Edge {
   fromId: string;
   toId: string;
   type: 'partner' | 'parent-child';
+  unionId: string;
   divorced?: boolean;
 }
